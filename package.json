@@ -4,13 +4,24 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "parcel ./overlay/index.html",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "config": "^3.3.1",
+    "express": "^4.17.1",
     "jest": "^26.4.2",
     "lite-server": "^2.5.4",
-    "tmi.js": "^1.5.0"
-  }
+    "p5": "^1.1.9",
+    "parcel-bundler": "^1.12.4",
+    "sketch": "^0.2.0",
+    "tmi.js": "^1.5.0",
+    "ws": "^7.3.1"
+  },
+  "browserslist": [
+    "last 1 Chrome version"
+  ]
 }
