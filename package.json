@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "parcel ./overlay/index.html",
+    "production": "parcel build ./overlay/index.html",
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
