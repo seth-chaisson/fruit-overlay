@@ -1,5 +1,6 @@
 import config from "./config";
 import tmi from "tmi.js";
+import { Howl, Howler } from "howler";
 
 const client = new tmi.Client({
   connection: {
@@ -22,7 +23,10 @@ let img = [],
   explosionList = [],
   splatImg,
   font,
-  names = new Map();
+  names = new Map(),
+  splatSfx,
+  highScores = [],
+  scoreImg;
 
 export default function sketch(p5) {
   client.on("message", (channel, tags, message, self) => {
@@ -34,49 +38,63 @@ export default function sketch(p5) {
       console.log("target:" + target);
       fruitList[target].velocity.x = 0;
       fruitList[target].velocity.y = 0;
-      fruitList[target].image = splatImg;
 
-      names.set(tags.username, {
+      splatSfx.play();
+
+      let key = Date.now();
+      names.set(key, {
+        userName: tags.username,
         x: fruitList[target].position.x,
         y: fruitList[target].position.y,
       });
 
       setTimeout(
-        (fruitIndex, name) => {
-          fruitList = fruitList
-            .slice(0, fruitIndex)
-            .concat(fruitList.slice(fruitIndex + 1));
+        (name) => {
           names.delete(name);
         },
         config.splatTimeout,
-        target,
-        tags.username
+        key
       );
+
+      fruitList = fruitList
+        .slice(0, target)
+        .concat(fruitList.slice(target + 1));
+      //update  high scorelist
+      let playerIndex = highScores.findIndex(
+        (e) => e.userName === tags.username
+      );
+
+      if (playerIndex === -1) {
+        highScores.push({ userName: tags.username, score: 1 });
+      } else {
+        highScores[playerIndex] = {
+          userName: highScores[playerIndex].userName,
+          score: highScores[playerIndex].score + 1,
+        };
+      }
     }
   });
 
   p5.preload = () => {
+    splatSfx = new Howl({ src: ["../images/splat.wav"] });
+
     font = p5.loadFont("../images/Roboto-Black.ttf");
     splatImg = p5.loadImage("../images/splat.png");
 
+    scoreImg = p5.loadImage("../images/scorebackground.png");
+
     img.push(p5.loadImage("../images/orange.png"));
     imgName.push("orange");
-    // fruitList.push(new fruit(img[0], p5, imgName[0]));
     img.push(p5.loadImage("../images/grapes.png"));
     imgName.push("grapes");
-    // fruitList.push(new fruit(img[1], p5, imgName[1]));
     img.push(p5.loadImage("../images/peach.png"));
     imgName.push("peach");
-    // fruitList.push(new fruit(img[2], p5, imgName[2]));
     img.push(p5.loadImage("../images/pineapple.png"));
     imgName.push("pineapple");
-    // fruitList.push(new fruit(img[3], p5, imgName[3]));
     img.push(p5.loadImage("../images/pomagranate.png"));
-    imgName.push("pomagranate");
-    // fruitList.push(new fruit(img[4], p5, imgName[4]));
+    imgName.push("pomegranate");
     img.push(p5.loadImage("../images/watermelon.png"));
     imgName.push("watermelon");
-    // fruitList.push(new fruit(img[5], p5, imgName[5]));
   };
 
   p5.setup = async () => {
@@ -84,7 +102,7 @@ export default function sketch(p5) {
     p5.createCanvas(p5.windowWidth, p5.windowHeight);
     p5.textFont(font);
     p5.textSize(config.fontSize);
-    p5.textAlign(p5.CENTER, p5.CENTER);
+    p5.textAlign(p5.CENTER, p5.TOP);
 
     setInterval(() => {
       if (fruitList.length >= config.maxFruits) return;
@@ -104,19 +122,60 @@ export default function sketch(p5) {
   p5.draw = () => {
     p5.clear();
 
-    names.forEach((point, name) => {
+    //draw usernames on hit fruits
+    names.forEach((point, key) => {
+      p5.image(splatImg, point.x, point.y);
       p5.fill(0);
       p5.stroke(10);
-      p5.text(name, point.x, point.y);
+      p5.text(point.userName, point.x + 100, point.y);
       p5.fill(255);
       p5.stroke(5);
-      p5.text(name, point.x, point.y);
+      p5.text(point.userName, point.x + 100, point.y);
     });
-
+    //draw/update fruits
     fruitList.forEach((e) => {
       e.update();
       e.draw();
     });
+
+    // draw scoreboard
+    if (highScores.length > 0) {
+      let sbPos = { x: (p5.windowWidth / 3) * 2, y: p5.windowHeight / 2 };
+      let sbCenterx =
+        (p5.windowWidth / 3) * 2 +
+        (p5.windowWidth - (p5.windowWidth / 3) * 2) / 2;
+      p5.image(scoreImg, sbPos.x, sbPos.y);
+
+      p5.fill(0);
+      p5.stroke(10);
+      p5.text("HIGH SCORES", sbCenterx, sbPos.y);
+      p5.fill(255);
+      p5.stroke(5);
+      p5.text("HIGH SCORES", sbCenterx, sbPos.y);
+
+      highScores = highScores.sort((a, b) => {
+        return -1 * (a.score - b.score);
+      });
+
+      for (let x = 0; x < 5; x++) {
+        if (x >= highScores.length) break;
+
+        p5.fill(0);
+        p5.stroke(10);
+        p5.text(
+          `${highScores[x].score} -- ${highScores[x].userName}`,
+          sbCenterx,
+          sbPos.y + 50 + x * 40
+        );
+        p5.fill(255);
+        p5.stroke(5);
+        p5.text(
+          `${highScores[x].score} -- ${highScores[x].userName}`,
+          sbCenterx,
+          sbPos.y + 50 + x * 40
+        );
+      }
+    }
   };
 }
 
@@ -134,7 +193,7 @@ class fruit {
 
     this.position.x = Math.floor((p.windowWidth - 200) * Math.random());
     this.position.y = Math.floor((p.windowHeight - 200) * Math.random());
-    console.log(this.position.x + "   " + this.position.y);
+
     this.velocity.x =
       Math.floor(config.maxVelocity * Math.random() * 2) - config.maxVelocity;
     this.velocity.y =
