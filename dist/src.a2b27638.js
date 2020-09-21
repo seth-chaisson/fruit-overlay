@@ -91677,7 +91677,10 @@ var _default = {
   channelName: "fruit_of_the_do0m",
   maxFruits: 10,
   fruitSpawnRate: 6,
-  maxVelocity: 10
+  //# per min
+  maxVelocity: 10,
+  fontSize: 20,
+  splatTimeout: 5 * 1000
 };
 exports.default = _default;
 },{}],"../node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
@@ -94591,34 +94594,81 @@ client.connect();
 
 let img = [],
     currentTime = 0,
-    fruitList = [];
+    fruitList = [],
+    imgName = [],
+    explosionList = [],
+    splatImg,
+    font,
+    names = new Map();
 
 function sketch(p5) {
   client.on("message", (channel, tags, message, self) => {
-    console.log(message);
+    let target = fruitList.findIndex(e => message.trim().toLowerCase() === e.name);
+
+    if (target !== -1) {
+      console.log("target:" + target);
+      fruitList[target].velocity.x = 0;
+      fruitList[target].velocity.y = 0;
+      fruitList[target].image = splatImg;
+      names.set(tags.username, {
+        x: fruitList[target].position.x,
+        y: fruitList[target].position.y
+      });
+      setTimeout((fruitIndex, name) => {
+        fruitList = fruitList.slice(0, fruitIndex).concat(fruitList.slice(fruitIndex + 1));
+        names.delete(name);
+      }, _config.default.splatTimeout, target, tags.username);
+    }
   });
+
+  p5.preload = () => {
+    font = p5.loadFont("../images/Roboto-Black.ttf");
+    splatImg = p5.loadImage("../images/splat.png");
+    img.push(p5.loadImage("../images/orange.png"));
+    imgName.push("orange"); // fruitList.push(new fruit(img[0], p5, imgName[0]));
+
+    img.push(p5.loadImage("../images/grapes.png"));
+    imgName.push("grapes"); // fruitList.push(new fruit(img[1], p5, imgName[1]));
+
+    img.push(p5.loadImage("../images/peach.png"));
+    imgName.push("peach"); // fruitList.push(new fruit(img[2], p5, imgName[2]));
+
+    img.push(p5.loadImage("../images/pineapple.png"));
+    imgName.push("pineapple"); // fruitList.push(new fruit(img[3], p5, imgName[3]));
+
+    img.push(p5.loadImage("../images/pomagranate.png"));
+    imgName.push("pomagranate"); // fruitList.push(new fruit(img[4], p5, imgName[4]));
+
+    img.push(p5.loadImage("../images/watermelon.png"));
+    imgName.push("watermelon"); // fruitList.push(new fruit(img[5], p5, imgName[5]));
+  };
 
   p5.setup = async () => {
     p5.frameRate(60);
     p5.createCanvas(p5.windowWidth, p5.windowHeight);
-    img.push(p5.loadImage("../images/orange.png"));
-    fruitList.push(new fruit(img[0], p5));
-    img.push(p5.loadImage("../images/grapes.png"));
-    fruitList.push(new fruit(img[1], p5));
-    img.push(p5.loadImage("../images/peach.png"));
-    fruitList.push(new fruit(img[2], p5));
-    img.push(p5.loadImage("../images/pineapple.png"));
-    fruitList.push(new fruit(img[3], p5));
-    img.push(p5.loadImage("../images/pomagranate.png"));
-    fruitList.push(new fruit(img[4], p5));
-    img.push(p5.loadImage("../images/watermelon.png"));
-    fruitList.push(new fruit(img[5], p5)); //console.log(fruitList[0].velocity);
+    p5.textFont(font);
+    p5.textSize(_config.default.fontSize);
+    p5.textAlign(p5.CENTER, p5.CENTER);
+    p5.fill(0);
+    setInterval(() => {
+      if (fruitList >= _config.default.maxFruits) return;
+      let randomFruit = Math.floor(img.length * Math.random());
+      fruitList.push(new fruit(img[randomFruit], p5, imgName[randomFruit]));
+    }, 60 * 1000 / _config.default.fruitSpawnRate);
+  };
 
-    console.log(fruitList[0].position);
+  p5.mousePressed = () => {
+    let randomFruit = Math.floor(img.length * Math.random());
+    fruitList.push(new fruit(img[randomFruit], p5, imgName[randomFruit]));
+    fruitList[fruitList.length - 1].position.x = p5.mouseX;
+    fruitList[fruitList.length - 1].position.y = p5.mouseY;
   };
 
   p5.draw = () => {
     p5.clear();
+    names.forEach((point, name) => {
+      p5.text(name, point.x, point.y);
+    });
     fruitList.forEach(e => {
       e.update();
       e.draw();
@@ -94637,10 +94687,12 @@ class fruit {
     x: 0,
     y: 0
   };
+  name = "";
 
-  constructor(img, p) {
+  constructor(img, p, n) {
     this.p = p;
     this.image = img;
+    this.name = n;
     this.position.x = Math.floor((p.windowWidth - 200) * Math.random());
     this.position.y = Math.floor((p.windowHeight - 200) * Math.random());
     console.log(this.position.x + "   " + this.position.y);
@@ -94702,7 +94754,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63031" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50572" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
