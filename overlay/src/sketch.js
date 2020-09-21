@@ -85,7 +85,6 @@ export default function sketch(p5) {
     p5.textFont(font);
     p5.textSize(config.fontSize);
     p5.textAlign(p5.CENTER, p5.CENTER);
-    p5.fill(0);
 
     setInterval(() => {
       if (fruitList >= config.maxFruits) return;
@@ -106,6 +105,11 @@ export default function sketch(p5) {
     p5.clear();
 
     names.forEach((point, name) => {
+      p5.fill(0);
+      p5.stroke(10);
+      p5.text(name, point.x, point.y);
+      p5.fill(255);
+      p5.stroke(5);
       p5.text(name, point.x, point.y);
     });
 

@@ -94649,7 +94649,6 @@ function sketch(p5) {
     p5.textFont(font);
     p5.textSize(_config.default.fontSize);
     p5.textAlign(p5.CENTER, p5.CENTER);
-    p5.fill(0);
     setInterval(() => {
       if (fruitList >= _config.default.maxFruits) return;
       let randomFruit = Math.floor(img.length * Math.random());
@@ -94667,6 +94666,11 @@ function sketch(p5) {
   p5.draw = () => {
     p5.clear();
     names.forEach((point, name) => {
+      p5.fill(0);
+      p5.stroke(10);
+      p5.text(name, point.x, point.y);
+      p5.fill(255);
+      p5.stroke(5);
       p5.text(name, point.x, point.y);
     });
     fruitList.forEach(e => {
@@ -94754,7 +94758,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50572" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56144" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
