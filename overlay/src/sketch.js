@@ -87,7 +87,7 @@ export default function sketch(p5) {
     p5.textAlign(p5.CENTER, p5.CENTER);
 
     setInterval(() => {
-      if (fruitList >= config.maxFruits) return;
+      if (fruitList.length >= config.maxFruits) return;
       let randomFruit = Math.floor(img.length * Math.random());
       fruitList.push(new fruit(img[randomFruit], p5, imgName[randomFruit]));
     }, (60 * 1000) / config.fruitSpawnRate);
